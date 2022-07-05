@@ -1,0 +1,36 @@
+#!/srv/virtualenv/iot/bin/python
+
+from requests import post
+from json import dumps
+import os, sys
+
+def collect_required_data():
+    config = {
+        "host": os.environ.get("TB_HOST", "http://localhost"),
+        "port": int(os.environ.get("TB_PORT", 8080)),
+        "provision_device_key": os.environ.get("TB_PROVISION_DEVICE_KEY"),
+        "provision_device_secret": os.environ.get("TB_PROVISION_DEVICE_SECRET"),
+        "device_name": os.environ.get("TB_DEVICE_NAME", os.popen("uuid").read().rstrip())
+    }
+    return config
+
+config = collect_required_data()
+
+THINGSBOARD_HOST = config["host"]
+THINGSBOARD_PORT = config["port"]
+
+PROVISION_REQUEST = {
+    "provisionDeviceKey": config["provision_device_key"],
+    "provisionDeviceSecret": config["provision_device_secret"],
+    "deviceName": config["device_name"]
+}
+
+response = post("%s:%i/api/v1/provision" % (THINGSBOARD_HOST, THINGSBOARD_PORT), json=PROVISION_REQUEST)
+decoded_response = response.json()
+received_token = decoded_response.get("credentialsValue")
+if received_token is not None:
+    print(received_token)
+    sys.exit(0)
+else:
+    print("ERROR")
+    sys.exit(1)

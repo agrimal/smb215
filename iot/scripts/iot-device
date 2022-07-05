@@ -1,0 +1,125 @@
+#!/bin/bash
+
+device=$1
+source /srv/iot/static-devices/$1
+
+change() {
+    v=$1
+    v=$(( $v + ($RANDOM % 3 - 1) ))
+    echo $v
+}
+
+get_temp() {
+    echo $(shuf -i 10-35 -n1)
+}
+
+tempok() {
+    v=$1
+    if [ $v -lt 10 ] || [ $v -gt 35 ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+get_hum() {
+    echo $(shuf -i 50-70 -n1)
+}
+
+humok() {
+    v=$1
+    if [ $v -lt 50 ] || [ $v -gt 70 ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+get_pm() {
+    echo $(shuf -i 20-200 -n1)
+}
+
+pmok() {
+    v=$1
+    if [ $v -lt 20 ] || [ $v -gt 200 ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+data="{"
+data+="\"type\":\"iot-device\",\"longitude\":\"$deviceLongitude\",\"latitude\":\"$deviceLatitude\",\"label\":\"$deviceLabel\","
+data+="\"minTemperatureWarn\":1,\"minTemperatureCrit\":-5,\"maxTemperatureWarn\":32,\"maxTemperatureCrit\":38"
+data+="}"
+echo "[$device] envoi de $data sur attributes"
+curl -s -X POST -d "$data" -H "Content-Type: application/json" https://iot.tech-tips.fr/api/v1/$deviceToken/attributes
+
+temperature=$(get_temp)
+humidity=$(get_hum)
+pm2_5=$(get_pm)
+pm5=$(get_pm)
+pm10=$(get_pm)
+
+while :; do
+
+    temperature=$(change $temperature)
+    i=0
+    while ! tempok $temperature; do
+        temperature=$(change $temperature)
+        i=$((i+1))
+        if [ $i -eq 10 ]; then
+            temperature=$(get_temp)
+        fi
+        sleep 1
+    done
+
+    humidity=$(change $humidity)
+    i=0
+    while ! humok $humidity; do
+        humidity=$(change $humidity)
+        i=$((i+1))
+        if [ $i -eq 10 ]; then
+            humidity=$(get_hum)
+        fi
+        sleep 1
+    done
+
+    pm2_5=$(change $pm2_5)
+    i=0
+    while ! pmok $pm2_5; do
+        pm2_5=$(change $pm2_5)
+        i=$((i+1))
+        if [ $i -eq 10 ]; then
+            pm2_5=$(get_pm)
+        fi
+        sleep 1
+    done
+
+    pm5=$(change $pm5)
+    i=0
+    while ! pmok $pm5; do
+        pm5=$(change $pm5)
+        i=$((i+1))
+        if [ $i -eq 10 ]; then
+            pm5=$(get_pm)
+        fi
+        sleep 1
+    done
+
+    pm10=$(change $pm10)
+    i=0
+    while ! pmok $pm10; do
+        pm10=$(change $pm10)
+        if [ $i -eq 10 ]; then
+            pm10=$(get_pm)
+        fi
+        sleep 1
+    done
+
+    data="{\"temperature\":$temperature,\"humidity\":$humidity,\"pm2.5\":$pm2_5,\"pm5\":$pm5,\"pm10\":$pm10}"
+    echo "[$device] envoi de $data sur telemetry"
+    curl -s -X POST -d "$data" -H "Content-Type: application/json" https://iot.tech-tips.fr/api/v1/$deviceToken/telemetry
+
+    sleep 10
+done

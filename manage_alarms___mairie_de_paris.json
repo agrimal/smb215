@@ -1,0 +1,271 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": ""
+    },
+    "name": "Manage Alarms - Mairie de Paris",
+    "type": "CORE",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": true,
+    "configuration": null
+  },
+  "metadata": {
+    "firstNodeIndex": 8,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 802,
+          "layoutY": 598
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Température notif OK",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "var newMsg = {};\nnewMsg.text = '';\nnewMsg.text += '\\u2705 __*' + metadata.deviceName + '*__:\\n';\nnewMsg.text += 'La température est retournée à la normale : ' + msg.details.msg.temperature + '°C\\n';\nnewMsg.chat_id = -1001651885948;\nnewMsg.parse_mode = 'MarkdownV2';\nreturn {'msg': newMsg, 'metadata': metadata, 'msgType': msgType};"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 682,
+          "layoutY": 722
+        },
+        "type": "org.thingsboard.rule.engine.rest.TbRestApiCallNode",
+        "name": "Envoi msg telegram",
+        "debugMode": false,
+        "configuration": {
+          "restEndpointUrlPattern": "https://api.telegram.org/bot5528147423:AAHiuWoeA-Re_S0jP2YMtL3fJ37aszKOMV8/sendMessage",
+          "requestMethod": "POST",
+          "useSimpleClientHttpFactory": false,
+          "ignoreRequestBody": false,
+          "enableProxy": false,
+          "useSystemProxyProperties": false,
+          "proxyScheme": null,
+          "proxyHost": null,
+          "proxyPort": 0,
+          "proxyUser": null,
+          "proxyPassword": null,
+          "readTimeoutMs": 0,
+          "maxParallelRequestsCount": 0,
+          "headers": {
+            "Content-Type": "application/json; charset=UTF-8"
+          },
+          "useRedisQueueForMsgPersistence": false,
+          "trimQueue": false,
+          "maxQueueSize": 0,
+          "credentials": {
+            "type": "anonymous"
+          }
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 688,
+          "layoutY": 150
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbJsSwitchNode",
+        "name": "test crit/warn",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "if (msg.temperature < metadata.shared_minTemperatureCrit || msg.temperature > metadata.shared_maxTemperatureCrit) {\n    return ['CRITICAL'];\n} else if (msg.temperature < metadata.shared_minTemperatureWarn || msg.temperature > metadata.shared_maxTemperatureWarn) {\n    return ['WARNING'];\n} else {\n    return ['OK'];\n}"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 730,
+          "layoutY": 341
+        },
+        "type": "org.thingsboard.rule.engine.action.TbCreateAlarmNode",
+        "name": "alarm warning",
+        "debugMode": false,
+        "configuration": {
+          "alarmDetailsBuildJs": "var details = {};\n\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    delete metadata.prevAlarmDetails;\n}\n\ndetails.msg = msg;\ndetails.msg.severity = 'WARNING';\nreturn details;",
+          "useMessageAlarmData": false,
+          "overwriteAlarmDetails": false,
+          "alarmType": "Température",
+          "severity": "WARNING",
+          "propagate": false,
+          "relationTypes": [],
+          "propagateToOwner": false,
+          "propagateToTenant": false,
+          "dynamicSeverity": false
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 968,
+          "layoutY": 456
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "log",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "return 'Incoming message: ' + JSON.stringify(msg) + ' Incoming metadata: ' + JSON.stringify(metadata);"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 537,
+          "layoutY": 595
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "format msg telegram",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "var newMsg = {};\nnewMsg.text = '';\nnewMsg.text += '‼️ __*' + metadata.deviceName + ' :*__\\n';\nnewMsg.text += '🌡 Température : ' + msg.details.msg.temperature + '°C\\n';\nnewMsg.chat_id = -1001651885948;\nnewMsg.parse_mode = 'MarkdownV2';\nreturn {'msg': newMsg, 'metadata': metadata, 'msgType': msgType};"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 963,
+          "layoutY": 338
+        },
+        "type": "org.thingsboard.rule.engine.action.TbClearAlarmNode",
+        "name": "clear alarm",
+        "debugMode": false,
+        "configuration": {
+          "alarmDetailsBuildJs": "var details = {};\n\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    delete metadata.prevAlarmDetails;\n}\n\ndetails.msg = msg;\nreturn details;",
+          "alarmType": "Température"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 512,
+          "layoutY": 341
+        },
+        "type": "org.thingsboard.rule.engine.action.TbCreateAlarmNode",
+        "name": "alarm critical",
+        "debugMode": false,
+        "configuration": {
+          "alarmDetailsBuildJs": "var details = {};\n\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    delete metadata.prevAlarmDetails;\n}\n\ndetails.msg = msg;\ndetails.msg.severity = 'CRITICAL';\nreturn details;",
+          "useMessageAlarmData": false,
+          "overwriteAlarmDetails": false,
+          "alarmType": "Température",
+          "severity": "WARNING",
+          "propagate": false,
+          "relationTypes": [],
+          "propagateToOwner": false,
+          "propagateToTenant": false,
+          "dynamicSeverity": false
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 310,
+          "layoutY": 150
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+        "name": "add attributes",
+        "debugMode": false,
+        "configuration": {
+          "tellFailureIfAbsent": true,
+          "clientAttributeNames": [],
+          "sharedAttributeNames": [
+            "minTemperatureCrit",
+            "minTemperatureWarn",
+            "maxTemperatureCrit",
+            "maxTemperatureWarn"
+          ],
+          "serverAttributeNames": [],
+          "latestTsKeyNames": [],
+          "getLatestValueWithTs": false
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 703,
+          "layoutY": 469
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "log",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "return 'Incoming message: ' + JSON.stringify(msg) + ' Incoming metadata: ' + JSON.stringify(metadata);"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 0,
+        "toIndex": 1,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 7,
+        "type": "CRITICAL"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 3,
+        "type": "WARNING"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 6,
+        "type": "OK"
+      },
+      {
+        "fromIndex": 3,
+        "toIndex": 9,
+        "type": "Created"
+      },
+      {
+        "fromIndex": 4,
+        "toIndex": 0,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 4,
+        "toIndex": 0,
+        "type": "Failure"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 1,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 4,
+        "type": "Cleared"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 9,
+        "type": "Created"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 2,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 2,
+        "type": "Failure"
+      },
+      {
+        "fromIndex": 9,
+        "toIndex": 5,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 9,
+        "toIndex": 5,
+        "type": "Failure"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}

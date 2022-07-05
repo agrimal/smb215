@@ -1,0 +1,31 @@
+{
+  "name": "Static devices - Mairie de Paris",
+  "description": "",
+  "image": null,
+  "type": "DEFAULT",
+  "transportType": "DEFAULT",
+  "provisionType": "ALLOW_CREATE_NEW_DEVICES",
+  "defaultRuleChainId": {
+    "entityType": "RULE_CHAIN",
+    "id": "2b6cacd0-fac0-11ec-88f2-bbfb5bfa212c"
+  },
+  "defaultDashboardId": null,
+  "defaultQueueName": "",
+  "profileData": {
+    "configuration": {
+      "type": "DEFAULT"
+    },
+    "transportConfiguration": {
+      "type": "DEFAULT"
+    },
+    "provisionConfiguration": {
+      "type": "ALLOW_CREATE_NEW_DEVICES",
+      "provisionDeviceSecret": "saulgbtpi7ordwr80d5i"
+    },
+    "alarms": null
+  },
+  "provisionDeviceKey": "4vh5dcd0s6ql9rwp2gd3",
+  "firmwareId": null,
+  "softwareId": null,
+  "default": false
+}

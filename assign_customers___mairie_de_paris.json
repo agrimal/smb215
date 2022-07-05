@@ -1,0 +1,152 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": ""
+    },
+    "name": "Assign customers - Mairie de Paris",
+    "type": "CORE",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null
+  },
+  "metadata": {
+    "firstNodeIndex": 4,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1151,
+          "layoutY": 312
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
+        "name": "manage alarms",
+        "debugMode": false,
+        "configuration": {
+          "ruleChainId": "b837c540-fada-11ec-88f2-bbfb5bfa212c"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 961,
+          "layoutY": 412
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "log",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "return 'FAILURE - Incoming message: ' + JSON.stringify(msg) + ' Incoming metadata: ' + JSON.stringify(metadata);"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 649,
+          "layoutY": 151
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "save attr",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SHARED_SCOPE",
+          "notifyDevice": false
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 608,
+          "layoutY": 257
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "save timeseries",
+        "debugMode": false,
+        "configuration": {
+          "defaultTTL": 0,
+          "skipLatestPersistence": false,
+          "useServerTs": false
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 285,
+          "layoutY": 150
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+        "name": "switch",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1022,
+          "layoutY": 35
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "log",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "return 'Incoming message: ' + JSON.stringify(msg) + ' Incoming metadata: ' + JSON.stringify(metadata);"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 611,
+          "layoutY": 39
+        },
+        "type": "org.thingsboard.rule.engine.action.TbAssignToCustomerNode",
+        "name": "assign-customer",
+        "debugMode": false,
+        "configuration": {
+          "customerNamePattern": "Mairie de Paris",
+          "createCustomerIfNotExists": false,
+          "customerCacheExpiration": 300
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 3,
+        "toIndex": 0,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 3,
+        "toIndex": 1,
+        "type": "Failure"
+      },
+      {
+        "fromIndex": 4,
+        "toIndex": 6,
+        "type": "Post attributes"
+      },
+      {
+        "fromIndex": 4,
+        "toIndex": 2,
+        "type": "Post attributes"
+      },
+      {
+        "fromIndex": 4,
+        "toIndex": 3,
+        "type": "Post telemetry"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 5,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 5,
+        "type": "Failure"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}

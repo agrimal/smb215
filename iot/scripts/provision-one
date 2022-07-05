@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+service=$1
+
+source /srv/iot/scripts/credentials
+
+export TB_PROVISION_DEVICE_KEY="$provision_device_key"
+export TB_PROVISION_DEVICE_SECRET="$provision_device_secret"
+
+fic="/srv/iot/static-devices/$service"
+source $fic
+export TB_DEVICE_NAME="$deviceLabel"
+echo -n "Provisioning du device [$TB_DEVICE_NAME] -> "
+token=$(/srv/iot/scripts/provision)
+if [ $? -eq 0 ] && [ "$token" != ERROR ]; then
+    echo "token obtenu $token"
+    sed -i "s/^deviceToken=.*/deviceToken=$token/" $fic
+    systemctl start "iot@$service.service"
+else
+    echo "erreur"
+fi
+
+systemctl start iot@$service.service
